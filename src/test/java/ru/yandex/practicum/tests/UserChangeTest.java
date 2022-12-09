@@ -1,15 +1,15 @@
 package ru.yandex.practicum.tests;
 
+import api.client.UserClient;
+import api.util.variables.BaseUri;
 import io.qameta.allure.Description;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
-import ru.yandex.practicum.requests.UserChangeRequestBody;
-import ru.yandex.practicum.variables.BaseUri;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
 public class UserChangeTest {
@@ -19,65 +19,58 @@ public class UserChangeTest {
         RestAssured.baseURI = BaseUri.BASE_URI;
     }
 
-    public Response getUserChangeMethodResponse(String email, String password, String name,
-                                                String newEmail, String newPassword, String newName) {
-        UserCreationTest userCreation = new UserCreationTest();
-        String accessToken = userCreation
-                .getUserCreationMethodResponse(email, password, name)
-                .jsonPath().getString("accessToken");
-
-        UserChangeRequestBody requestBody = new UserChangeRequestBody(newEmail, newPassword, newName);
-        return given()
-                .header("Content-type", "application/json")
-                .header("Authorization", accessToken)
-                .and()
-                .body(requestBody)
-                .when()
-                .patch("/api/auth/user");
-    }
-
     private String randomString = RandomStringUtils.randomAlphanumeric(6);
 
     @Test
-    @Description("Basic test for PATCH /api/auth/user")
+    @DisplayName("Check success response for changing user email")
+    @Description("Changing user email. Checking status code 200 and success response body")
     public void changingUserEmailReturnsSuccessResponse() {
-        getUserChangeMethodResponse("test_" + randomString + "@yandex.ru", "1234_" + randomString, "tester_" + randomString,
-                "attempt_" + randomString + "@yandex.ru", "1234_" + randomString, "tester_" + randomString)
+        UserClient userClient = new UserClient();
+        Response emailSuccessResponse = userClient.getAuthUserChangeMethodResponse(
+                "test_" + randomString + "@yandex.ru", "1234_" + randomString, "tester_" + randomString,
+                "attempt_" + randomString + "@yandex.ru", "1234_" + randomString, "tester_" + randomString);
+        emailSuccessResponse
                 .then().statusCode(200)
                 .and()
                 .assertThat().body("success", equalTo(true));
     }
 
     @Test
-    @Description("Basic test for PATCH /api/auth/user")
+    @DisplayName("Check success response for changing user password")
+    @Description("Changing user password. Checking status code 200 and success response body")
     public void changingUserPasswordReturnsSuccessResponse() {
-        getUserChangeMethodResponse("test_" + randomString + "@yandex.ru", "1234_" + randomString, "tester_" + randomString,
-                "test_" + randomString + "@yandex.ru", "4321_" + randomString, "tester_" + randomString)
+        UserClient userClient = new UserClient();
+        Response passwordSuccessResponse = userClient.getAuthUserChangeMethodResponse(
+                "test_" + randomString + "@yandex.ru", "1234_" + randomString, "tester_" + randomString,
+                "test_" + randomString + "@yandex.ru", "4321_" + randomString, "tester_" + randomString);
+        passwordSuccessResponse
                 .then().statusCode(200)
                 .and()
                 .assertThat().body("success", equalTo(true));
     }
 
     @Test
-    @Description("Basic test for PATCH /api/auth/user")
+    @DisplayName("Check success response for changing user name")
+    @Description("Changing user name. Checking status code 200 and success response body")
     public void changingUserNameReturnsSuccessResponse() {
-        getUserChangeMethodResponse("test_" + randomString + "@yandex.ru", "1234_" + randomString, "tester_" + randomString,
-                "test_" + randomString + "@yandex.ru", "1234_" + randomString, "user_" + randomString)
+        UserClient userClient = new UserClient();
+        Response nameSuccessResponse = userClient.getAuthUserChangeMethodResponse(
+                "test_" + randomString + "@yandex.ru", "1234_" + randomString, "tester_" + randomString,
+                "test_" + randomString + "@yandex.ru", "1234_" + randomString, "user_" + randomString);
+        nameSuccessResponse
                 .then().statusCode(200)
                 .and()
                 .assertThat().body("success", equalTo(true));
     }
 
     @Test
-    @Description("Basic test for PATCH /api/auth/user")
+    @DisplayName("Check client error response for changing user without authorization")
+    @Description("Changing user without authorization. Checking status code 401 and client error response body")
     public void changingUserWithoutAuthReturnsClientError() {
-        UserChangeRequestBody requestBody = new UserChangeRequestBody("test_" + randomString + "@yandex.ru", "1234_" + randomString, "tester_" + randomString);
-            given()
-                .header("Content-type", "application/json")
-                .and()
-                .body(requestBody)
-                .when()
-                .patch("/api/auth/user")
+        UserClient userClient = new UserClient();
+        Response clientErrorResponse = userClient.getNoAuthUserChangeMethodResponse(
+                "test_" + randomString + "@yandex.ru", "1234_" + randomString, "tester_" + randomString);
+        clientErrorResponse
                 .then().statusCode(401)
                 .and()
                 .assertThat().body("success", equalTo(false));

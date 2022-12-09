@@ -1,18 +1,18 @@
-package ru.yandex.practicum.requests;
+package api.model.user.requests;
 
-public class UserChangeRequestBody {
+public class UserCreationRequestBody {
 
     private String email;
     private String password;
     private String name;
 
-    public UserChangeRequestBody(String email, String password, String name) {
+    public UserCreationRequestBody(String email, String password, String name) {
         this.email = email;
         this.password = password;
         this.name = name;
     }
 
-    public UserChangeRequestBody() {}
+    public UserCreationRequestBody() {}
 
     public String getEmail() {
         return email;

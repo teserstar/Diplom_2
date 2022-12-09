@@ -1,4 +1,4 @@
-package ru.yandex.practicum.requests;
+package api.model.user.requests;
 
 public class UserLoginRequestBody {
 

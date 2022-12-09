@@ -1,15 +1,15 @@
 package ru.yandex.practicum.tests;
 
+import api.client.UserClient;
+import api.util.variables.BaseUri;
 import io.qameta.allure.Description;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
-import ru.yandex.practicum.requests.UserCreationRequestBody;
-import ru.yandex.practicum.variables.BaseUri;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
 public class UserCreationTest {
@@ -19,59 +19,69 @@ public class UserCreationTest {
         RestAssured.baseURI = BaseUri.BASE_URI;
     }
 
-    public Response getUserCreationMethodResponse(String email, String password, String name) {
-        UserCreationRequestBody requestBody = new UserCreationRequestBody(email, password, name);
-        return given()
-                .header("Content-type", "application/json")
-                .and()
-                .body(requestBody)
-                .when()
-                .post("/api/auth/register");
-    }
-
     private String randomString = RandomStringUtils.randomAlphanumeric(6);
 
     @Test
-    @Description("Basic test for POST /api/auth/register")
+    @DisplayName("Check success response for user creation")
+    @Description("Creating a user. Checking status code 200 and success response body")
     public void creatingNewUserReturnsSuccessResponse() {
-        getUserCreationMethodResponse("test_" + randomString + "@yandex.ru", "1234_" + randomString, "tester_" + randomString)
+        UserClient userClient = new UserClient();
+        Response successResponse = userClient.getUserCreationMethodResponse("test_" + randomString + "@yandex.ru",
+                "1234_" + randomString, "tester_" + randomString);
+        successResponse
                 .then().statusCode(200)
                 .and()
                 .assertThat().body("success", equalTo(true));
     }
 
     @Test
-    @Description("Basic test for POST /api/auth/register")
+    @DisplayName("Check client error response for duplicate user creation")
+    @Description("Creating a duplicate user. Checking status code 403 and client error response body")
     public void creatingDuplicateUserReturnsClientError() {
-        getUserCreationMethodResponse("test_" + randomString + "@yandex.ru", "1234_" + randomString, "tester_" + randomString);
-        getUserCreationMethodResponse("test_" + randomString + "@yandex.ru", "1234_" + randomString, "tester_" + randomString)
+        UserClient userClient = new UserClient();
+        userClient.getUserCreationMethodResponse("test_" + randomString + "@yandex.ru", "1234_" + randomString, "tester_" + randomString);
+        Response clientErrorResponse = userClient.getUserCreationMethodResponse("test_" + randomString + "@yandex.ru",
+                        "1234_" + randomString, "tester_" + randomString);
+        clientErrorResponse
                 .then().statusCode(403)
                 .and()
                 .assertThat().body("message", equalTo("User already exists"));
     }
 
     @Test
-    @Description("Basic test for POST /api/auth/register")
+    @DisplayName("Check client error response for user creation without email")
+    @Description("Creating a user without email. Checking status code 403 and client error response body")
     public void creatingNewUserWithoutEmailReturnsClientError() {
-        getUserCreationMethodResponse(null, "1234_" + randomString, "tester_" + randomString)
+        UserClient userClient = new UserClient();
+        Response emailClientErrorResponse = userClient.getUserCreationMethodResponse(null,
+                        "1234_" + randomString, "tester_" + randomString);
+        emailClientErrorResponse
                 .then().statusCode(403)
                 .and()
                 .assertThat().body("message", equalTo("Email, password and name are required fields"));
     }
 
     @Test
-    @Description("Basic test for POST /api/auth/register")
+    @DisplayName("Check client error response for user creation without password")
+    @Description("Creating a user without password. Checking status code 403 and client error response body")
     public void creatingNewUserWithoutPasswordReturnsClientError() {
-        getUserCreationMethodResponse("test_" + randomString + "@yandex.ru", null, "tester_" + randomString)
+        UserClient userClient = new UserClient();
+        Response passwordClientErrorResponse = userClient.getUserCreationMethodResponse("test_" + randomString + "@yandex.ru",
+                        null, "tester_" + randomString);
+        passwordClientErrorResponse
                 .then().statusCode(403)
                 .and()
                 .assertThat().body("message", equalTo("Email, password and name are required fields"));
     }
 
     @Test
-    @Description("Basic test for POST /api/auth/register")
+    @DisplayName("Check client error response for user creation without name")
+    @Description("Creating a user without name. Checking status code 403 and client error response body")
     public void creatingNewUserWithoutNameReturnsClientError() {
-        getUserCreationMethodResponse("test_" + randomString + "@yandex.ru", "1234_" + randomString, null)
+        UserClient userClient = new UserClient();
+        Response nameClientErrorResponse = userClient.getUserCreationMethodResponse("test_" + randomString + "@yandex.ru",
+                        "1234_" + randomString, null);
+        nameClientErrorResponse
                 .then().statusCode(403)
                 .and()
                 .assertThat().body("message", equalTo("Email, password and name are required fields"));
